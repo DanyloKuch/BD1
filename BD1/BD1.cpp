@@ -9,6 +9,10 @@ SlaveFile slave("SP.fl");
 void insert_m() {
     MasterRecord rec;
     cout << "Enter KP: "; cin >> rec.KP;
+    if (master.find(rec.KP) != -1) {
+        cout << "Insert failed: KP " << rec.KP << " already exists!\n";
+        return;
+    }
     cout << "Surname: "; cin >> rec.surname;
     cout << "Status: "; cin >> rec.status;
     cout << "City: "; cin >> rec.city;
