@@ -33,11 +33,14 @@ public:
     SlaveFile(const string& fname);
     ~SlaveFile();
 
+
     void initializeFile();
     int insert(const SlaveRecord& record);
     SlaveRecord get(int pos);
     bool remove(int pos);
     vector<SlaveRecord> getAll();
+    void compact();
+
 
     // New update method to modify an existing record
     bool update(int pos, const SlaveRecord& record); // Add this line

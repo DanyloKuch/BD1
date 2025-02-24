@@ -179,3 +179,56 @@ bool MasterFile::update(int pos, const MasterRecord& record) {
     cerr << "Updated master record: KP=" << record.KP << ", pos=" << pos << endl;
     return true;
 }
+
+void MasterFile::compact() {
+    // 1. «читуЇмо вс≥ активн≥ (не видален≥) записи
+    vector<MasterRecord> activeRecords;
+    for (const auto& entry : index) {
+        file.seekg(headerSize() + entry.address * recordSize());
+        MasterRecord rec;
+        file.read(reinterpret_cast<char*>(&rec), sizeof(MasterRecord));
+        if (!rec.deleted) {
+            activeRecords.push_back(rec);
+        }
+    }
+
+    
+    file.close();
+
+   
+    file.open(filename, ios::out | ios::binary | ios::trunc);
+    if (!file) {
+        cerr << "Error: Could not open file for compaction." << endl;
+        return;
+    }
+
+    
+    int count = 0;
+    file.write(reinterpret_cast<const char*>(&count), sizeof(int));
+    vector<int> freeSlots(MAX_FREE, -1);
+    file.write(reinterpret_cast<const char*>(freeSlots.data()), MAX_FREE * sizeof(int)); 
+
+   
+    index.clear(); 
+    freeList.clear();
+
+    for (MasterRecord& rec : activeRecords) {
+        std::streampos currentPos = file.tellp();
+        int pos = (currentPos - static_cast<std::streamoff>(headerSize())) / recordSize();
+
+        
+        file.write(reinterpret_cast<const char*>(&rec), sizeof(MasterRecord));
+
+       
+        index.push_back({ rec.KP, pos }); 
+    }
+
+    
+    sort(index.begin(), index.end(), [](const IndexEntry& a, const IndexEntry& b) {
+        return a.key < b.key; 
+        });
+
+    
+    file.close();
+    file.open(filename, ios::in | ios::out | ios::binary); 
+}

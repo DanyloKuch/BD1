@@ -183,3 +183,27 @@ vector<SlaveRecord> SlaveFile::getAll() {
 
     return records;
 }
+
+void SlaveFile::compact() {
+
+    vector<SlaveRecord> activeRecords = getAll();
+
+    file.close();
+    file.open(filename, ios::out | ios::binary | ios::trunc);
+
+    int count = 0;
+    file.write(reinterpret_cast<const char*>(&count), sizeof(int));
+    vector<int> freeSlots(MAX_FREE, -1);
+    file.write(reinterpret_cast<const char*>(freeSlots.data()), MAX_FREE * sizeof(int));
+
+    for (SlaveRecord& rec : activeRecords) {
+        file.write(reinterpret_cast<const char*>(&rec), sizeof(SlaveRecord));
+    }
+
+    freeList.clear();
+
+    file.close();
+    file.open(filename, ios::in | ios::out | ios::binary);
+}
+
+

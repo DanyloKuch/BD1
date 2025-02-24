@@ -49,7 +49,7 @@ public:
     MasterRecord get(int KP);
     bool remove(int KP);
     vector<MasterRecord> getAll();
-public:
+    void compact();
     bool update(int pos, const MasterRecord& record);
 
 };

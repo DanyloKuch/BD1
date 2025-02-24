@@ -266,24 +266,22 @@ void del_m() {
     cout << "Enter KP: "; cin >> kp;
 
     try {
+        
         MasterRecord m = master.get(kp);
-        if (m.firstSP != -1) {
-            int current = m.firstSP;
-            while (current != -1) {
-                try {
-                    SlaveRecord s = slave.get(current);
-                    int next = s.next;
-                    slave.remove(current);
-                    current = next;
-                }
-                catch (...) {
-                    cerr << "Skipping invalid slave record at " << current << endl;
-                    break;
-                }
-            }
+        
+        m.deleted = true;
+        int masterPos = master.find(kp);
+        master.update(masterPos, m);
+
+        int current = m.firstSP;
+        while (current != -1) {
+            SlaveRecord s = slave.get(current);
+            s.deleted = true;
+            slave.update(current, s);
+            current = s.next;
         }
-        master.remove(kp);
-        cout << "Master record and all slaves deleted." << endl;
+
+        cout << "Master record KP " << kp << " and associated slaves marked as deleted." << endl;
     }
     catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
@@ -344,6 +342,45 @@ void del_s() {
     }
 }
 
+void compact_master() {
+    master.compact();
+
+    vector<MasterRecord> masters = master.getAll();
+    for (MasterRecord& m : masters) {
+        int current = m.firstSP;
+        int prevPos = -1;
+        m.firstSP = -1; 
+
+        while (current != -1) {
+            SlaveRecord s = slave.get(current);
+            if (!s.deleted) {
+                if (m.firstSP == -1) {
+                    m.firstSP = current; 
+                }
+                else {
+                    SlaveRecord prevS = slave.get(prevPos);
+                    prevS.next = current;
+                    slave.update(prevPos, prevS);
+                }
+                prevPos = current;
+            }
+            current = s.next;
+        }
+
+       
+        int pos = master.find(m.KP);
+        master.update(pos, m);
+    }
+
+    cout << "Master file compacted and slave references updated." << endl;
+}
+
+
+void compact_slave() {
+    slave.compact();
+    cout << "Slave file compacted." << endl;
+}
+
 
 
 int main() {
@@ -363,6 +400,8 @@ int main() {
         else if (command == "calc-s") calc_s();
         else if (command == "ut-m") ut_m();
         else if (command == "ut-s") ut_s();
+        else if (command == "compact-m") compact_master();
+        else if (command == "compact-s") compact_slave();
         else if (command == "exit") break;
         else cout << "Unknown command\n";
     }
