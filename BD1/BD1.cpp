@@ -1,7 +1,7 @@
 ﻿#include "MasterFile.h"
 #include "SlaveFile.h"
 #include "Global.h"
-
+    
 MasterFile master("S.fl", "S.ind");
 SlaveFile slave("SP.fl");
 
@@ -9,10 +9,6 @@ SlaveFile slave("SP.fl");
 void insert_m() {
     MasterRecord rec;
     cout << "Enter KP: "; cin >> rec.KP;
-    if (master.find(rec.KP) != -1) {
-        cout << "Insert failed: KP " << rec.KP << " already exists!\n";
-        return;
-    }
     cout << "Surname: "; cin >> rec.surname;
     cout << "Status: "; cin >> rec.status;
     cout << "City: "; cin >> rec.city;
@@ -57,7 +53,7 @@ void insert_s() {
             }
         }
         else {
-            cerr << "Error: Failed to insert slave record\n";
+             cerr << "Error: Failed to insert slave record\n";
         }
     }
     catch (const exception& e) {
@@ -264,15 +260,13 @@ void update_s() {
 void del_m() {
     int kp;
     cout << "Enter KP: "; cin >> kp;
-
     try {
-        
+
         MasterRecord m = master.get(kp);
-        
+
         m.deleted = true;
         int masterPos = master.find(kp);
         master.update(masterPos, m);
-
         int current = m.firstSP;
         while (current != -1) {
             SlaveRecord s = slave.get(current);
@@ -280,14 +274,12 @@ void del_m() {
             slave.update(current, s);
             current = s.next;
         }
-
         cout << "Master record KP " << kp << " and associated slaves marked as deleted." << endl;
     }
     catch (const exception& e) {
         cout << "Error: " << e.what() << endl;
     }
 }
-
 
 // Видалення підлеглого запису та оновлення зв'язків
 void del_s() {

@@ -111,11 +111,14 @@ int SlaveFile::insert(const SlaveRecord& record) {
 
 
 SlaveRecord SlaveFile::get(int pos) {
+    cout << "Reading slave at pos: " << pos << endl;
     SlaveRecord rec;
     file.seekg(headerSize() + pos * recordSize());
     file.read((char*)&rec, recordSize());
+    if (file.fail()) throw runtime_error("Read failed");
+    cout << "Read: KP=" << rec.KP << ", KD=" << rec.KD << ", Deleted=" << rec.deleted << endl;
     if (rec.deleted) throw runtime_error("Deleted");
-    return rec;  // Повертаємо копію, а не посилання
+    return rec;
 }
 
 // Видаляє запис за вказаною позицією

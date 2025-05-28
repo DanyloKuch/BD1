@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include <functional>
 
 using namespace std;
 
@@ -27,6 +28,19 @@ struct IndexEntry {
     int address;
 };
 
+
+struct LambdaFunctions {
+    function<bool(const IndexEntry&, const IndexEntry&)> sortByKey =
+        [](const IndexEntry& a, const IndexEntry& b) { return a.key < b.key; };
+    function<bool(const IndexEntry&, int)> searchByKey =
+        [](const IndexEntry& e, int key) { return e.key < key; };
+    function<bool(const IndexEntry&, int)> insertByKey =
+        [](const IndexEntry& e, int key) { return e.key < key; };
+    function<bool(const IndexEntry&, int)> removeByKey =
+        [](const IndexEntry& e, int key) { return e.key == key; };
+};
+
+
 // Клас MasterFile
 class MasterFile {
 private:
@@ -35,6 +49,7 @@ private:
     vector<int> freeList;
     string filename;
     string indexFile;
+    LambdaFunctions lambdas;
 
     size_t headerSize() const;
     size_t recordSize() const;
